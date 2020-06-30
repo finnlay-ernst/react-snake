@@ -3,8 +3,13 @@ import './Snake.css';
 
 function App() {
   return (
-    <div className="Heading">
-      React Snake
+    <div>
+      <div className="Heading">
+        React Snake
+      </div>
+      <canvas className="GameCanvas">
+
+      </canvas>
     </div>
   );
 }
