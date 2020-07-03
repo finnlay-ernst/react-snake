@@ -1,7 +1,7 @@
 import React from 'react';
 import './Snake.css';
 
-const gameWidth = 8;
+const gameWidth =8;
 
 let widthArray = [];
 for (let i = 0; i<gameWidth; i++)
@@ -29,7 +29,7 @@ function Game() {
   </div>; 
 }
 function Row({ width }){
-  return <div className="Row" style={{height: `${500/gameWidth}px`}}>
+  return <div className="Row" >
     {
       widthArray.map((item, i) => <div className="Cell" key={i}></div>)
     }
