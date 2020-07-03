@@ -49,14 +49,14 @@ function Row({ rowNumber }) {
 }
 function Cell({ coords }) {
   let {x, y} = coords;
-  const [color, setColor] = useState('azure');
+  const cellRef = useRef(null);
   if (state.snakePositions.indexOf({x,y}) !== -1) {
     console.log(`Position ${x}, ${y} is part of the snake`);
-    setColor('black');
+    cellRef.current.style = {backgroundColor: 'black'};
   }
   // if (state.applePositions.findIndex({x, y}) !== -1) 
   //   setColor('green');
-  return <div className="Cell" style={{backgroundColor: `${color}`}}></div>;
+  return <div ref={cellRef} className="Cell" style={{backgroundColor: `${color}`}}></div>;
 }
 
 function Footer() {
