@@ -171,7 +171,10 @@ function Cell({ coords }) {
 }
 
 function Footer() {
-  	return <footer className="Footer">By Finnlay Ernst | finnlay.ernst@gmail.com</footer>; 
+  	return <footer className="Footer">
+		  <div className="FooterElement">By Finnlay Ernst</div>		  
+		  <div className="FooterElement">finnlay.ernst@gmail.com</div>		   
+	</footer>; 
 }
 
 export default Snake;
