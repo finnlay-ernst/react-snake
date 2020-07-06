@@ -1,87 +1,99 @@
 import React, { useRef, useReducer, useEffect } from 'react';
 import './Snake.css';
 
-const gameWidth = 8;
+const GAME_WIDTH = 8;
 
-const inputKeys = {
-  North: 'W',
-  East: 'D',
-  South: 'S',
-  West: 'A'
+const INPUT_KEYS = {
+	w: 'North',
+	d: 'East',
+	s: 'South',
+	a: 'West'
 };
 
 let widthArray = [];
-for (let i = 0; i<gameWidth; i++)
-  widthArray.push(i);  
+for (let i = 0; i<GAME_WIDTH; i++)
+	widthArray.push(i);  
 
-let initialState = {
+const initialState = {
     snakePositions: [{x: 0, y: 0}],
     snakeDirection: 'North',
     applePositions: [],
     isFinished: false
 };
 
-let reducer = (currentState, intent) => {
-  return currentState;
+const reducer = (currentState, intent) => {
+	switch (intent.type) {
+		case 'direction': {
+			return {
+				...currentState,
+			};
+		}
+	}
 }
 
-let keypressHandler = (event) => {
- console.log(event);
-}
 
 function Snake() {
-  //Setup reducer function to alter state via intents
-  const [state, dispatch] = useReducer(reducer, initialState);
+	//Setup reducer function to alter state via intents
+	//Intents have a type, in accordance with the format used in the React docs
+	const [state, dispatch] = useReducer(reducer, initialState);
+	
+	//The keypress handler will dispatch direction change events to the reducer function
+	const keypressHandler = (event) => {
+		 console.log(event.key);
+		 if (Object.keys(INPUT_KEYS).indexOf(event.key) !== -1)
+		 	dispatch({type:'direction', data: INPUT_KEYS[event.key]});
+	}
 
-  //On component mount we want to add a listener for a WASD inputs (dependency list is empty)
-  useEffect(() => {
-    //https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener
-    window.addEventListener('keypress', keypressHandler);
-    //Remember the useEffect hook returns a function to be run when the component unmounts
-    return () => {window.removeEventListener('keypress', keypressHandler);}
-  }, []);
+	//On component mount we want to add a listener for a WASD inputs (dependency list is empty)
+	useEffect(() => {
+		//https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener
+		console.log("Running useEffect");
+		window.addEventListener('keydown', keypressHandler);
+		//Remember the useEffect hook returns a function to be run when the component unmounts
+		return () => window.removeEventListener('keydown', keypressHandler);
+	}, []);
 
-  return (
-    <div className="SiteContainer">
-      <Header />
-      <Game />
-      <Footer />
-    </div>
-  );
+	return (
+		<div className="SiteContainer">
+		<Header />
+		<Game />
+		<Footer />
+		</div>
+	);
 }
 
 function Header() {
-  return <h1 className="Heading">React Snake</h1>; 
+  	return <h1 className="Heading">React Snake</h1>; 
 }
 
 function Game() {
-  return <div className="GameContainer">
-    {
-      widthArray.map((item, i) => <Row rowNumber={i} key={i}/>)
-    }
-  </div>; 
+	return <div className="GameContainer">
+		{
+		widthArray.map((item, i) => <Row rowNumber={i} key={i}/>)
+		}
+	</div>; 
 }
 function Row({ rowNumber }) {
-  return <div className="Row" >
-    {
-      widthArray.map((item, i) => <Cell coords={{x: i, y: rowNumber}} key={i}/>)
-    }
-  </div>;
+	return <div className="Row" >
+		{
+		widthArray.map((item, i) => <Cell coords={{x: i, y: rowNumber}} key={i}/>)
+		}
+	</div>;
 }
 function Cell({ coords }) {
-  let {x, y} = coords;
-  const cellRef = useRef(null);
-  if (state.snakePositions.indexOf({x,y}) !== -1) {
-    console.log(`Position ${x}, ${y} is part of the snake`);
-    cellRef.current.style = {backgroundColor: 'black'};
-  }
-  // if (state.applePositions.findIndex({x, y}) !== -1) 
-  //   setColor('green');
-  return <div ref={cellRef} className="Cell" style={{backgroundColor: `${color}`}}></div>;
+	let {x, y} = coords;
+	const cellRef = useRef(null);
+	//   if (state.snakePositions.indexOf({x,y}) !== -1) {
+	//     console.log(`Position ${x}, ${y} is part of the snake`);
+	//     cellRef.current.style = {backgroundColor: 'black'};
+	//   }
+	// if (state.applePositions.findIndex({x, y}) !== -1) 
+	//   setColor('green');
+	return <div ref={cellRef} className="Cell" style={{backgroundColor: `azure`}}></div>;
 }
 
 function Footer() {
-  return <footer className="Footer">By Finnlay Ernst | finnlay.ernst@gmail.com</footer>; 
+  	return <footer className="Footer">By Finnlay Ernst | finnlay.ernst@gmail.com</footer>; 
 }
 
 export default Snake;
