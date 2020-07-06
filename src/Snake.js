@@ -8,21 +8,41 @@ const INPUT_KEYS = {
 	d: 'East',
 	s: 'South',
 	a: 'West'
-};
+}
+
+const MOVEMENT_MAPPING = {
+	North: ({ inputX, inputY }) => {
+		return {x: inputX, y: inputY-1};
+	},
+	East: ({ inputX, inputY }) => {
+		return {x: inputX+1, y: inputY};
+	},
+	South: ({ inputX, inputY }) => {
+		return {x: inputX, y: inputY+1};
+	},
+	West: ({ inputX, inputY }) => {
+		return {x: inputX-1, y: inputY};
+	},
+}
 
 let widthArray = [];
 for (let i = 0; i<GAME_WIDTH; i++)
 	widthArray.push(i);  
 
 const updateSnakePositions = (snakePositions, snakeDirection) => {
-	//TODO
 	//Snake head is stored at the first index
+	snakePositions[0] = MOVEMENT_MAPPING[snakeDirection](snakePositions);
 	return snakePositions;
 }
 
-const generateApple = () => {
-	//TODO
-	return {x: 0, y: 0};
+const generateApple = (snakePositions, applePositions) => {
+	let position;
+	//Keep generating apples until we get one thats in an empty spot
+	do {
+		position = {x: Math.floor(Math.random() * GAME_WIDTH), y: Math.floor(Math.random() * GAME_WIDTH)};
+	} while (snakePositions.indexOf(position) !== -1 || applePositions.indexOf(position) !== -1);
+	
+	return position;
 }
 
 const initialState = {
@@ -68,11 +88,9 @@ const reducer = (currentState, intent) => {
 			};
 		}
 		case 'tick': {
-			//TODO
-			let currentSnakePositions = updateSnakePositions(currentState.snakePositions, currentState.snakeDirection);
 			return {
 				...currentState,
-				snakePositions: currentSnakePositions
+				snakePositions: updateSnakePositions(currentState.snakePositions, currentState.snakeDirection)
 			};
 		}
 		default: {
