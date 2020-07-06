@@ -14,8 +14,19 @@ let widthArray = [];
 for (let i = 0; i<GAME_WIDTH; i++)
 	widthArray.push(i);  
 
+const updateSnakePositions = (snakePositions, snakeDirection) => {
+	//TODO
+	//Snake head is stored at the first index
+	return snakePositions;
+}
+
+const generateApple = () => {
+	//TODO
+	return {x: 0, y: 0};
+}
+
 const initialState = {
-    snakePositions: [{x: 0, y: 0}],
+    snakePositions: [{x: Math.floor(GAME_WIDTH/2), y: Math.floor(GAME_WIDTH/2)}],
     snakeDirection: 'North',
     applePositions: [],
     isFinished: false
@@ -26,7 +37,47 @@ const reducer = (currentState, intent) => {
 		case 'direction': {
 			return {
 				...currentState,
+				snakeDirection: intent.data
 			};
+		}
+		case 'appleSpawned': {	
+			let currentApplePositions = currentState.applePositions;
+			//Push the new apple position onto the array
+			currentApplePositions.push(intent.data);						
+			return {
+				...currentState,
+				applePositions: currentApplePositions
+			};
+		}
+		case 'gameStart': {			
+			return initialState;
+		}
+		case 'gameEnd': {
+			return {
+				...currentState,
+				isFinished: true				
+			};
+		}
+		case 'appleEaten': {
+			let currentSnakePositions = currentState.snakePositions;
+			//Add new snake tile to the end of the array
+			currentSnakePositions.push(intent.data);			
+			return {
+				...currentState,
+				snakePositions: currentSnakePositions
+			};
+		}
+		case 'tick': {
+			//TODO
+			let currentSnakePositions = updateSnakePositions(currentState.snakePositions, currentState.snakeDirection);
+			return {
+				...currentState,
+				snakePositions: currentSnakePositions
+			};
+		}
+		default: {
+			console.log('Reducer received unmapped intent');
+			return currentState;
 		}
 	}
 }
