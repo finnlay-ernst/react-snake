@@ -1,25 +1,46 @@
-import React, { useState } from 'react';
+import React, { useRef, useReducer, useEffect } from 'react';
 import './Snake.css';
 
 const gameWidth = 8;
+
+const inputKeys = {
+  North: 'W',
+  East: 'D',
+  South: 'S',
+  West: 'A'
+};
 
 let widthArray = [];
 for (let i = 0; i<gameWidth; i++)
   widthArray.push(i);  
 
-let state = {
-  snakePositions: [{x: 0, y: 0}],
-  snakeDirection: 'North',
-  applePositions: [],
-  isFinished: false
+let initialState = {
+    snakePositions: [{x: 0, y: 0}],
+    snakeDirection: 'North',
+    applePositions: [],
+    isFinished: false
 };
 
 let reducer = (currentState, intent) => {
   return currentState;
 }
 
+let keypressHandler = (event) => {
+ console.log(event);
+}
 
 function Snake() {
+  //Setup reducer function to alter state via intents
+  const [state, dispatch] = useReducer(reducer, initialState);
+
+  //On component mount we want to add a listener for a WASD inputs (dependency list is empty)
+  useEffect(() => {
+    //https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener
+    window.addEventListener('keypress', keypressHandler);
+    //Remember the useEffect hook returns a function to be run when the component unmounts
+    return () => {window.removeEventListener('keypress', keypressHandler);}
+  }, []);
+
   return (
     <div className="SiteContainer">
       <Header />
