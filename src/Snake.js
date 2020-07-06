@@ -2,7 +2,7 @@ import React, { useRef, useReducer, useEffect } from 'react';
 import './Snake.css';
 
 const GAME_WIDTH = 8;
-
+const TICK_INTERVAL = 1000;
 const INPUT_KEYS = {
 	w: 'North',
 	d: 'East',
@@ -48,7 +48,7 @@ const generateApple = (snakePositions, applePositions) => {
 const initialState = {
     snakePositions: [{x: Math.floor(GAME_WIDTH/2), y: Math.floor(GAME_WIDTH/2)}],
     snakeDirection: 'North',
-    applePositions: [],
+    applePositions: [generateApple([{x: Math.floor(GAME_WIDTH/2), y: Math.floor(GAME_WIDTH/2)}], [])],
     isFinished: false
 };
 
@@ -88,6 +88,7 @@ const reducer = (currentState, intent) => {
 			};
 		}
 		case 'tick': {
+			console.log(currentState);
 			return {
 				...currentState,
 				snakePositions: updateSnakePositions(currentState.snakePositions, currentState.snakeDirection)
@@ -100,12 +101,12 @@ const reducer = (currentState, intent) => {
 	}
 }
 
-
 function Snake() {
 	//Setup reducer function to alter state via intents
 	//Intents have a type, in accordance with the format used in the React docs
 	const [state, dispatch] = useReducer(reducer, initialState);
-	
+	console.log(state);
+
 	//The keypress handler will dispatch direction change events to the reducer function
 	const keypressHandler = (event) => {
 		 console.log(event.key);
@@ -120,6 +121,14 @@ function Snake() {
 		window.addEventListener('keydown', keypressHandler);
 		//Remember the useEffect hook returns a function to be run when the component unmounts
 		return () => window.removeEventListener('keydown', keypressHandler);
+	}, []);
+
+	//Another useEffect hook for the setInterval call that defines the framerate and drives the whole game
+	useEffect(() => {
+		const intervalID = setInterval(() => {
+			dispatch({type: 'tick'});
+		}, TICK_INTERVAL);
+		return () => clearInterval(intervalID);
 	}, []);
 
 	return (
