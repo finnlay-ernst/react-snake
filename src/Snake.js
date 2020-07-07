@@ -1,28 +1,26 @@
 import React, { useRef, useReducer, useEffect } from 'react';
 import './Snake.css';
 
-const GAME_WIDTH = 8;
-const TICK_INTERVAL = 1000;
+const GAME_WIDTH = 12;
+const TICK_INTERVAL = 500;
 const INPUT_KEYS = {
 	w: 'North',
 	d: 'East',
 	s: 'South',
 	a: 'West'
 }
+const COLOUR_MAP = {
+	Snake: 'black', 
+	Apple: 'green',
+	Empty: 'azure',
+	Hit: 'red'
+}
 
 const MOVEMENT_MAPPING = {
-	North: ({ inputX, inputY }) => {
-		return {x: inputX, y: inputY-1};
-	},
-	East: ({ inputX, inputY }) => {
-		return {x: inputX+1, y: inputY};
-	},
-	South: ({ inputX, inputY }) => {
-		return {x: inputX, y: inputY+1};
-	},
-	West: ({ inputX, inputY }) => {
-		return {x: inputX-1, y: inputY};
-	},
+	North: ({ x, y }) => ({x: x, y: y-1}),
+	East: ({ x, y }) => ({x: x+1, y}),
+	South: ({ x, y }) => ({x, y: y+1}),
+	West: ({ x, y }) => ({x: x-1, y})
 }
 
 let widthArray = [];
@@ -30,8 +28,11 @@ for (let i = 0; i<GAME_WIDTH; i++)
 	widthArray.push(i);  
 
 const updateSnakePositions = (snakePositions, snakeDirection) => {
-	//Snake head is stored at the first index
-	snakePositions[0] = MOVEMENT_MAPPING[snakeDirection](snakePositions);
+	const newHead = MOVEMENT_MAPPING[snakeDirection](snakePositions[0]);
+	//Shift on a new position for the snake head
+	snakePositions.unshift(newHead);
+	//Pop off the last element (the last tail square)
+	snakePositions.pop();
 	return snakePositions;
 }
 
@@ -54,11 +55,11 @@ const initialState = {
 
 const reducer = (currentState, intent) => {
 	switch (intent.type) {
-		case 'direction': {
+		case 'direction': {						
 			return {
 				...currentState,
 				snakeDirection: intent.data
-			};
+			}
 		}
 		case 'appleSpawned': {	
 			let currentApplePositions = currentState.applePositions;
@@ -67,7 +68,7 @@ const reducer = (currentState, intent) => {
 			return {
 				...currentState,
 				applePositions: currentApplePositions
-			};
+			}
 		}
 		case 'gameStart': {			
 			return initialState;
@@ -76,7 +77,7 @@ const reducer = (currentState, intent) => {
 			return {
 				...currentState,
 				isFinished: true				
-			};
+			}
 		}
 		case 'appleEaten': {
 			let currentSnakePositions = currentState.snakePositions;
@@ -85,14 +86,13 @@ const reducer = (currentState, intent) => {
 			return {
 				...currentState,
 				snakePositions: currentSnakePositions
-			};
+			}
 		}
-		case 'tick': {
-			console.log(currentState);
+		case 'tick': {				
 			return {
 				...currentState,
 				snakePositions: updateSnakePositions(currentState.snakePositions, currentState.snakeDirection)
-			};
+			}
 		}
 		default: {
 			console.log('Reducer received unmapped intent');
@@ -104,20 +104,17 @@ const reducer = (currentState, intent) => {
 function Snake() {
 	//Setup reducer function to alter state via intents
 	//Intents have a type, in accordance with the format used in the React docs
-	const [state, dispatch] = useReducer(reducer, initialState);
-	console.log(state);
-
+	const [state, dispatch] = useReducer(reducer, initialState);	
+	
 	//The keypress handler will dispatch direction change events to the reducer function
 	const keypressHandler = (event) => {
-		 console.log(event.key);
-		 if (Object.keys(INPUT_KEYS).indexOf(event.key) !== -1)
-		 	dispatch({type:'direction', data: INPUT_KEYS[event.key]});
+		if (Object.keys(INPUT_KEYS).indexOf(event.key) !== -1)
+			dispatch({type:'direction', data: INPUT_KEYS[event.key]});
 	}
 
 	//On component mount we want to add a listener for a WASD inputs (dependency list is empty)
 	useEffect(() => {
 		//https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener
-		console.log("Running useEffect");
 		window.addEventListener('keydown', keypressHandler);
 		//Remember the useEffect hook returns a function to be run when the component unmounts
 		return () => window.removeEventListener('keydown', keypressHandler);
@@ -133,9 +130,9 @@ function Snake() {
 
 	return (
 		<div className="SiteContainer">
-		<Header />
-		<Game />
-		<Footer />
+			<Header />
+			<Game snakePositions={state.snakePositions} applePositions={state.applePositions}/>
+			<Footer />
 		</div>
 	);
 }
@@ -144,30 +141,45 @@ function Header() {
   	return <h1 className="Heading">React Snake</h1>; 
 }
 
-function Game() {
+function Game({ snakePositions, applePositions }) {
 	return <div className="GameContainer">
 		{
-		widthArray.map((item, i) => <Row rowNumber={i} key={i}/>)
+		widthArray.map((item, i) => <Row snakePositions={snakePositions} applePositions={applePositions} rowNumber={i} key={i}/>)
 		}
 	</div>; 
 }
-function Row({ rowNumber }) {
+function Row({ snakePositions, applePositions, rowNumber }) {
 	return <div className="Row" >
 		{
-		widthArray.map((item, i) => <Cell coords={{x: i, y: rowNumber}} key={i}/>)
+		widthArray.map((item, i) => <Cell snakePositions={snakePositions} applePositions={applePositions} coords={{x: i, y: rowNumber}} key={i}/>)
 		}
 	</div>;
 }
-function Cell({ coords }) {
-	let {x, y} = coords;
+
+//Returns a function that can be used to check if the given position posA is in an array
+const positionComparator = (posA) => {
+	return (posB) => posA.x === posB.x && posA.y === posB.y;
+}
+
+function Cell({ snakePositions, applePositions, coords }) {	
+	const { x, y } = coords;
 	const cellRef = useRef(null);
-	//   if (state.snakePositions.indexOf({x,y}) !== -1) {
-	//     console.log(`Position ${x}, ${y} is part of the snake`);
-	//     cellRef.current.style = {backgroundColor: 'black'};
-	//   }
-	// if (state.applePositions.findIndex({x, y}) !== -1) 
-	//   setColor('green');
-	return <div ref={cellRef} className="Cell" style={{backgroundColor: `azure`}}></div>;
+	
+
+	if (cellRef.current){
+
+		if (snakePositions.some(positionComparator(coords))) {		
+			cellRef.current.style.backgroundColor = COLOUR_MAP['Snake'];
+		}
+		else if (applePositions.some(positionComparator(coords))){
+			cellRef.current.style.backgroundColor = COLOUR_MAP['Apple'];
+		}
+		else {			
+			cellRef.current.style.backgroundColor = COLOUR_MAP['Empty'];		
+		}
+	} 
+
+	return <div ref={cellRef} className="Cell" style={{backgroundColor: COLOUR_MAP['Empty']}}></div>;
 }
 
 function Footer() {
