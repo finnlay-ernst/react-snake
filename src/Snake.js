@@ -2,7 +2,7 @@ import React, { useRef, useReducer, useEffect } from 'react';
 import './Snake.css';
 
 const GAME_WIDTH = 12;
-const TICK_INTERVAL = 5000;
+const TICK_INTERVAL = 500;
 const INPUT_KEYS = {
 	w: 'North',
 	d: 'East',
@@ -58,20 +58,21 @@ const initialState = {
     isFinished: false
 };
 
-const reducer = (currentState, intent) => {
+const reducer = (state, intent) => {
+	// console.log(`Reducer called with state: ${JSON.stringify(state)}`);
 	switch (intent.type) {
 		case 'direction': {						
 			return {
-				...currentState,
+				...state,
 				snakeDirection: intent.data
 			}
 		}
 		case 'appleSpawned': {	
-			let currentApplePositions = currentState.applePositions;
+			let currentApplePositions = state.applePositions;
 			//Push the new apple position onto the array
 			currentApplePositions.push(intent.data);						
 			return {
-				...currentState,
+				...state,
 				applePositions: currentApplePositions
 			}
 		}
@@ -80,29 +81,32 @@ const reducer = (currentState, intent) => {
 		}
 		case 'gameEnd': {
 			return {
-				...currentState,
+				...state,
 				isFinished: true				
 			}
 		}
 		case 'appleEaten': {
-			let currentSnakePositions = currentState.snakePositions;
+			let currentSnakePositions = state.snakePositions;
 			//Add new snake tile to the end of the array
 			currentSnakePositions.push(intent.data);			
 			return {
-				...currentState,
+				...state,
 				snakePositions: currentSnakePositions
 			}
 		}
 		case 'tick': {	
-			//console.log(currentState.snakePositions[0]);			
+			//Apparently this is what you have to do if you have an array of objects and want to copy by value
+			let currentSnakePositions = JSON.parse(JSON.stringify(state.snakePositions));						
+			const currentSnakeDirection = state.snakeDirection;
+	
 			return {
-				...currentState,
-				snakePositions: updateSnakePositions(currentState.snakePositions, currentState.snakeDirection)
+				...state,
+				snakePositions: updateSnakePositions(currentSnakePositions, currentSnakeDirection)
 			}
 		}
 		default: {
 			console.log('Reducer received unmapped intent');
-			return currentState;
+			return state;
 		}
 	}
 }
@@ -128,9 +132,8 @@ function Snake() {
 
 	//Another useEffect hook for the setInterval call that defines the framerate and drives the whole game
 	useEffect(() => {
-		const intervalID = setInterval(() => {
-			console.log('Interval function triggered');
-			dispatch({type: 'tick'});
+		const intervalID = setInterval(() => {			
+			dispatch({type: 'tick'});			
 		}, TICK_INTERVAL);
 		return () => clearInterval(intervalID);
 	}, []);
@@ -171,12 +174,9 @@ function Row({ snakePositions, applePositions, rowNumber }) {
 }
 
 function Cell({ snakePositions, applePositions, coords }) {	
-	const { x, y } = coords;
 	const cellRef = useRef(null);
-	
 
 	if (cellRef.current){
-
 		if (snakePositions.some(positionComparator(coords))) {		
 			cellRef.current.style.backgroundColor = COLOUR_MAP['Snake'];
 		}
