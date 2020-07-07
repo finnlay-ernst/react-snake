@@ -86,8 +86,7 @@ const reducer = (state, intent) => {
 				let currentSnakePositions = JSON.parse(JSON.stringify(state.snakePositions));						
 				currentSnakePositions = updateSnakePositions(currentSnakePositions, state.snakeDirection);
 				let currentApplePositions = JSON.parse(JSON.stringify(state.applePositions));
-				let eating = false;
-				let finished = false;
+				let eating = false;				
 	
 				if (state.snakeEating){
 					//Add new snake tile to the end of the array by double extending the head the tick after eating
@@ -106,8 +105,8 @@ const reducer = (state, intent) => {
 	
 				//Check for walls
 				if (currentSnakePositions[0].x >= GAME_WIDTH || currentSnakePositions[0].x < 0 || 
-					currentSnakePositions[0].y >= GAME_WIDTH || currentSnakePositions[0].y < 0 ) {
-					finished = true;
+					currentSnakePositions[0].y >= GAME_WIDTH || currentSnakePositions[0].y < 0 ) {					
+					return {...state, isFinished: true}
 				}
 				
 				return {
@@ -115,7 +114,7 @@ const reducer = (state, intent) => {
 					snakePositions: currentSnakePositions, 
 					applePositions: currentApplePositions,
 					snakeEating: eating,
-					isFinished: finished
+					isFinished: false
 				}
 			}
 		}
