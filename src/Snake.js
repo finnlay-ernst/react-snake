@@ -109,6 +109,13 @@ const reducer = (state, intent) => {
 					return {...state, isFinished: true}
 				}
 				
+				//Check if eating self
+				if (currentSnakePositions.slice(1).some(positionComparator(currentSnakePositions[0]))){
+					console.log('Snake ate his tale');
+					return {...state, isFinished: true}
+				}
+
+				
 				return {
 					...state,
 					snakePositions: currentSnakePositions, 
@@ -188,11 +195,9 @@ function Cell({ snakePositions, applePositions, isFinished, coords }) {
 
 	if (cellRef.current){
 		if (isFinished && positionComparator(coords)(snakePositions[0])){
-			console.log('head is red');
 			cellRef.current.style.backgroundColor = COLOUR_MAP['Hit'];			
 		}
-		else if (snakePositions.some(positionComparator(coords))) {		
-			console.log('head is black');
+		else if (snakePositions.some(positionComparator(coords))) {					
 			cellRef.current.style.backgroundColor = COLOUR_MAP['Snake'];
 		}
 		else if (applePositions.some(positionComparator(coords))){
