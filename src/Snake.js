@@ -1,8 +1,8 @@
 import React, { useRef, useReducer, useEffect } from 'react';
 import './Snake.css';
 
-const GAME_WIDTH = 12;
-const TICK_INTERVAL = 500;
+const GAME_WIDTH = 16;
+const TICK_INTERVAL = 100;
 const INPUT_KEYS = {
 	w: 'North',
 	d: 'East',
@@ -46,15 +46,16 @@ const generateApple = (snakePositions, applePositions) => {
 	//Keep generating apples until we get one thats in an empty spot
 	do {
 		position = {x: Math.floor(Math.random() * GAME_WIDTH), y: Math.floor(Math.random() * GAME_WIDTH)};
-	} while (snakePositions.indexOf(position) !== -1 || applePositions.indexOf(position) !== -1);
-	// console.log(`Apple Position: ${position.x}, ${position.y}`);
+	} while (snakePositions.findIndex(positionComparator(position)) !== -1 || applePositions.findIndex(positionComparator(position)) !== -1);
+	
 	return position;
 }
 
 const initialState = {
     snakePositions: [{x: Math.floor(GAME_WIDTH/2), y: Math.floor(GAME_WIDTH/2)}],
     snakeDirection: 'North',
-    applePositions: [generateApple([{x: Math.floor(GAME_WIDTH/2), y: Math.floor(GAME_WIDTH/2)}], [])],
+	applePositions: [generateApple([{x: Math.floor(GAME_WIDTH/2), y: Math.floor(GAME_WIDTH/2)}], [])],
+	snakeEating: false,
     isFinished: false
 };
 
@@ -85,23 +86,32 @@ const reducer = (state, intent) => {
 				isFinished: true				
 			}
 		}
-		case 'appleEaten': {
-			let currentSnakePositions = state.snakePositions;
-			//Add new snake tile to the end of the array
-			currentSnakePositions.push(intent.data);			
-			return {
-				...state,
-				snakePositions: currentSnakePositions
-			}
-		}
 		case 'tick': {	
 			//Apparently this is what you have to do if you have an array of objects and want to copy by value
 			let currentSnakePositions = JSON.parse(JSON.stringify(state.snakePositions));						
-			const currentSnakeDirection = state.snakeDirection;
-	
+			currentSnakePositions = updateSnakePositions(currentSnakePositions, state.snakeDirection);
+			let currentApplePositions = JSON.parse(JSON.stringify(state.applePositions));
+			let eating = false;
+
+			if (state.snakeEating){
+				//Add new snake tile to the end of the array by double extending the head the tick after eating
+				currentSnakePositions.unshift(MOVEMENT_MAPPING[state.snakeDirection](currentSnakePositions[0]));
+			}
+
+			state.applePositions.forEach((elem) => {
+				if (positionComparator(elem)(currentSnakePositions[0])){
+					eating = true;
+					currentApplePositions.splice(currentApplePositions.findIndex(positionComparator(elem)), 1);
+					//Get a new apple
+					currentApplePositions.push(generateApple(currentSnakePositions, currentApplePositions));		
+				}
+			});
+			
 			return {
 				...state,
-				snakePositions: updateSnakePositions(currentSnakePositions, currentSnakeDirection)
+				snakePositions: currentSnakePositions, 
+				applePositions: currentApplePositions,
+				snakeEating: eating
 			}
 		}
 		default: {
@@ -125,6 +135,8 @@ function Snake() {
 	//On component mount we want to add a listener for a WASD inputs (dependency list is empty)
 	useEffect(() => {
 		//https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener
+		//Note that triggering events on keydown feels more responsive to me but leads to dispactch 
+		//calls being spammed hence causing lag if user holds down a direction
 		window.addEventListener('keydown', keypressHandler);
 		//Remember the useEffect hook returns a function to be run when the component unmounts
 		return () => window.removeEventListener('keydown', keypressHandler);
@@ -138,12 +150,6 @@ function Snake() {
 		return () => clearInterval(intervalID);
 	}, []);
 
-	state.applePositions.forEach((elem) => {
-		if (positionComparator(elem)(state.snakePositions[0])){
-			dispatch ({type: 'appleEaten', data: elem});
-			return;
-		}
-	});
 
 	return (
 		<div className="SiteContainer">
