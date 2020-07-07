@@ -2,7 +2,7 @@ import React, { useRef, useReducer, useEffect } from 'react';
 import './Snake.css';
 
 const GAME_WIDTH = 12;
-const TICK_INTERVAL = 500;
+const TICK_INTERVAL = 5000;
 const INPUT_KEYS = {
 	w: 'North',
 	d: 'East',
@@ -18,14 +18,19 @@ const COLOUR_MAP = {
 
 const MOVEMENT_MAPPING = {
 	North: ({ x, y }) => ({x: x, y: y-1}),
-	East: ({ x, y }) => ({x: x+1, y}),
-	South: ({ x, y }) => ({x, y: y+1}),
-	West: ({ x, y }) => ({x: x-1, y})
+	East: ({ x, y }) => ({x: x+1, y: y}),
+	South: ({ x, y }) => ({x: x, y: y+1}),
+	West: ({ x, y }) => ({x: x-1, y: y})
 }
 
 let widthArray = [];
 for (let i = 0; i<GAME_WIDTH; i++)
 	widthArray.push(i);  
+
+//Returns a function that can be used to check if the given position posA is in an array
+const positionComparator = (posA) => {
+	return (posB) => posA.x === posB.x && posA.y === posB.y;
+}
 
 const updateSnakePositions = (snakePositions, snakeDirection) => {
 	const newHead = MOVEMENT_MAPPING[snakeDirection](snakePositions[0]);
@@ -42,7 +47,7 @@ const generateApple = (snakePositions, applePositions) => {
 	do {
 		position = {x: Math.floor(Math.random() * GAME_WIDTH), y: Math.floor(Math.random() * GAME_WIDTH)};
 	} while (snakePositions.indexOf(position) !== -1 || applePositions.indexOf(position) !== -1);
-	
+	// console.log(`Apple Position: ${position.x}, ${position.y}`);
 	return position;
 }
 
@@ -88,7 +93,8 @@ const reducer = (currentState, intent) => {
 				snakePositions: currentSnakePositions
 			}
 		}
-		case 'tick': {				
+		case 'tick': {	
+			//console.log(currentState.snakePositions[0]);			
 			return {
 				...currentState,
 				snakePositions: updateSnakePositions(currentState.snakePositions, currentState.snakeDirection)
@@ -123,10 +129,18 @@ function Snake() {
 	//Another useEffect hook for the setInterval call that defines the framerate and drives the whole game
 	useEffect(() => {
 		const intervalID = setInterval(() => {
+			console.log('Interval function triggered');
 			dispatch({type: 'tick'});
 		}, TICK_INTERVAL);
 		return () => clearInterval(intervalID);
 	}, []);
+
+	state.applePositions.forEach((elem) => {
+		if (positionComparator(elem)(state.snakePositions[0])){
+			dispatch ({type: 'appleEaten', data: elem});
+			return;
+		}
+	});
 
 	return (
 		<div className="SiteContainer">
@@ -154,11 +168,6 @@ function Row({ snakePositions, applePositions, rowNumber }) {
 		widthArray.map((item, i) => <Cell snakePositions={snakePositions} applePositions={applePositions} coords={{x: i, y: rowNumber}} key={i}/>)
 		}
 	</div>;
-}
-
-//Returns a function that can be used to check if the given position posA is in an array
-const positionComparator = (posA) => {
-	return (posB) => posA.x === posB.x && posA.y === posB.y;
 }
 
 function Cell({ snakePositions, applePositions, coords }) {	
