@@ -1,5 +1,13 @@
 import React, { useRef, useReducer, useEffect } from 'react';
+import axios from 'axios';
 import './Snake.css';
+
+const DB_INSTANCE = axios.create({
+	baseURL: 'http://localhost:3001',
+	timeout: 1000,
+	headers: {		
+	}
+});
 
 const GAME_WIDTH = 16;
 const TICK_INTERVAL = 100;
@@ -216,12 +224,21 @@ function Cell({ snakePositions, applePositions, isFinished, coords }) {
 
 function ScoreForm({ show }){
 	return (show) ? <form className="ScoreForm">
-		<input type="text" placerHolder="Player Name" name="playerName" />
+		<input type="text" placerholder="Player Name" name="playerName" />
 		<input type="submit" />
 	</form> : null;
 }
 
 function Scoreboard(){
+	useEffect(() => {		
+		DB_INSTANCE.get('/scores')
+		.then((response) => {
+			console.log(response);
+		})
+		.catch((error) => {
+			console.log(error);
+		});
+	}, []);
 	return <ul className="Scoreboard">
 		<li>Temp 1</li>
 		<li>Temp 2</li>
