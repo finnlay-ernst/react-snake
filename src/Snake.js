@@ -166,6 +166,8 @@ function Snake() {
 		<div className="SiteContainer">
 			<Header />
 			<Game snakePositions={state.snakePositions} applePositions={state.applePositions} isFinished={state.isFinished}/>
+			<ScoreForm show={true}/>
+			<Scoreboard />
 			<Footer />
 		</div>
 	);
@@ -182,6 +184,7 @@ function Game({ snakePositions, applePositions, isFinished }) {
 		}
 	</div>; 
 }
+
 function Row({ snakePositions, applePositions, isFinished, rowNumber }) {
 	return <div className="Row" >
 		{
@@ -209,6 +212,21 @@ function Cell({ snakePositions, applePositions, isFinished, coords }) {
 	} 
 
 	return <div ref={cellRef} className="Cell" style={{backgroundColor: COLOUR_MAP['Empty']}}></div>;
+}
+
+function ScoreForm({ show }){
+	return (show) ? <form className="ScoreForm">
+		<input type="text" placerHolder="Player Name" name="playerName" />
+		<input type="submit" />
+	</form> : null;
+}
+
+function Scoreboard(){
+	return <ul className="Scoreboard">
+		<li>Temp 1</li>
+		<li>Temp 2</li>
+		<li>Temp 3</li>
+	</ul>;
 }
 
 function Footer() {
