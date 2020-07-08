@@ -50,6 +50,22 @@
   width: 100%;  
 }
 
+.ScoreForm {
+  width: max-content;
+  margin-left: auto;
+  margin-right: auto;
+}
+input[type=text] {
+  border: 2px solid #383d49;
+}
+input[type=text]:focus {
+  border: 2px solid #6e7891;
+}
+input[type=submit] {
+  background-color: cornflowerblue;
+  border-color: cornflowerblue;
+}
+
 .Scoreboard {
   background-color: azure;
   padding: 10px;

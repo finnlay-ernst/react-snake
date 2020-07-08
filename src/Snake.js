@@ -178,7 +178,7 @@ function Snake() {
 			<Header />
 			<GameOverlay show={!state.isStarted}/>
 			<Game snakePositions={state.snakePositions} applePositions={state.applePositions} isFinished={state.isFinished}/>
-			<ScoreForm show={false}/>
+			<ScoreForm show={state.isFinished}/>
 			<Scoreboard />
 			<Footer />
 		</div>
@@ -235,7 +235,7 @@ function Cell({ snakePositions, applePositions, isFinished, coords }) {
 
 function ScoreForm({ show }){
 	return (show) ? <form className="ScoreForm">
-		<input type="text" placerholder="Player Name" name="playerName" />
+		<input type="text" placeholder="Player Name" name="playerName" />
 		<input type="submit" />
 	</form> : null;
 }
