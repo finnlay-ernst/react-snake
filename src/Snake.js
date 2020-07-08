@@ -1,4 +1,4 @@
-import React, { useRef, useReducer, useEffect } from 'react';
+import React, { useRef, useReducer, useEffect, useState } from 'react';
 import axios from 'axios';
 import './Snake.css';
 
@@ -174,7 +174,7 @@ function Snake() {
 		<div className="SiteContainer">
 			<Header />
 			<Game snakePositions={state.snakePositions} applePositions={state.applePositions} isFinished={state.isFinished}/>
-			<ScoreForm show={true}/>
+			<ScoreForm show={false}/>
 			<Scoreboard />
 			<Footer />
 		</div>
@@ -230,19 +230,20 @@ function ScoreForm({ show }){
 }
 
 function Scoreboard(){
+	const [scores, setScores] = useState([]);
 	useEffect(() => {		
 		DB_INSTANCE.get('/scores')
 		.then((response) => {
-			console.log(response);
+			setScores(response.data);
 		})
 		.catch((error) => {
 			console.log(error);
 		});
 	}, []);
 	return <ul className="Scoreboard">
-		<li>Temp 1</li>
-		<li>Temp 2</li>
-		<li>Temp 3</li>
+		{
+		(scores) ? scores.map((item, i) => <li key={i}>{item.name}:{item.score}</li>) : null
+		}
 	</ul>;
 }
 
