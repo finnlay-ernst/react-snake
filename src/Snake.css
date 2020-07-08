@@ -11,6 +11,20 @@
   text-align: center;
 }
 
+.GameOverlay {
+  background-color: white;
+  color: #282c34;
+  position: fixed;
+  z-index: 2;
+  opacity: 95%;
+  width: 450px;
+  height: 450px;
+  left: 50%;
+  margin-left: -225px;
+  top: 3.5rem;
+  text-align: center;
+}
+
 .GameContainer {
   background-color: azure;
   border: 10px solid black;
@@ -34,10 +48,6 @@
   border-left: 2px solid black;
   border-bottom: 2px solid black;
   width: 100%;  
-}
-
-.ScoreForm {
-
 }
 
 .Scoreboard {

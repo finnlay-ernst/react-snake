@@ -59,16 +59,20 @@ const generateApple = (snakePositions, applePositions) => {
 	return position;
 }
 
-const initialState = {
+const initialState = () => ({
     snakePositions: [{x: Math.floor(GAME_WIDTH/2), y: Math.floor(GAME_WIDTH/2)}],
     snakeDirection: 'North',
 	applePositions: [generateApple([{x: Math.floor(GAME_WIDTH/2), y: Math.floor(GAME_WIDTH/2)}], [])],
 	snakeEating: false,
+	isStarted: false,
     isFinished: false
-};
+});
 
 const reducer = (state, intent) => {
 	// console.log(`Reducer called with state: ${JSON.stringify(state)}`);
+	if ((!state.isStarted || state.isFinished) && intent.type !== 'gameStart')
+		return state;
+
 	switch (intent.type) {
 		case 'direction': {						
 			return {
@@ -77,7 +81,10 @@ const reducer = (state, intent) => {
 			}
 		}
 		case 'gameStart': {			
-			return initialState;
+			return {
+				...(initialState()), 
+				isStarted: true
+			}
 		}
 		case 'gameEnd': {
 			return {
@@ -86,52 +93,47 @@ const reducer = (state, intent) => {
 			}
 		}
 		case 'tick': {	
-			if (state.isFinished){				
-				return state;
-			}
-			else {
-				//Apparently this is what you have to do if you have an array of objects and want to copy by value
-				let currentSnakePositions = JSON.parse(JSON.stringify(state.snakePositions));						
-				currentSnakePositions = updateSnakePositions(currentSnakePositions, state.snakeDirection);
-				let currentApplePositions = JSON.parse(JSON.stringify(state.applePositions));
-				let eating = false;				
-	
-				if (state.snakeEating){
-					//Add new snake tile to the end of the array by double extending the head the tick after eating
-					currentSnakePositions.unshift(MOVEMENT_MAPPING[state.snakeDirection](currentSnakePositions[0]));
-				}
-	
-				//Check for apples
-				state.applePositions.forEach((elem) => {
-					if (positionComparator(elem)(currentSnakePositions[0])){
-						eating = true;
-						currentApplePositions.splice(currentApplePositions.findIndex(positionComparator(elem)), 1);
-						//Get a new apple
-						currentApplePositions.push(generateApple(currentSnakePositions, currentApplePositions));		
-					}
-				});
-	
-				//Check for walls
-				if (currentSnakePositions[0].x >= GAME_WIDTH || currentSnakePositions[0].x < 0 || 
-					currentSnakePositions[0].y >= GAME_WIDTH || currentSnakePositions[0].y < 0 ) {					
-					return {...state, isFinished: true}
-				}
-				
-				//Check if eating self
-				if (currentSnakePositions.slice(1).some(positionComparator(currentSnakePositions[0]))){
-					console.log('Snake ate his tale');
-					return {...state, isFinished: true}
-				}
+			//Apparently this is what you have to do if you have an array of objects and want to copy by value
+			let currentSnakePositions = JSON.parse(JSON.stringify(state.snakePositions));						
+			currentSnakePositions = updateSnakePositions(currentSnakePositions, state.snakeDirection);
+			let currentApplePositions = JSON.parse(JSON.stringify(state.applePositions));
+			let eating = false;				
 
-				
-				return {
-					...state,
-					snakePositions: currentSnakePositions, 
-					applePositions: currentApplePositions,
-					snakeEating: eating,
-					isFinished: false
-				}
+			if (state.snakeEating){
+				//Add new snake tile to the end of the array by double extending the head the tick after eating
+				currentSnakePositions.unshift(MOVEMENT_MAPPING[state.snakeDirection](currentSnakePositions[0]));
 			}
+
+			//Check for apples
+			state.applePositions.forEach((elem) => {
+				if (positionComparator(elem)(currentSnakePositions[0])){
+					eating = true;
+					currentApplePositions.splice(currentApplePositions.findIndex(positionComparator(elem)), 1);
+					//Get a new apple
+					currentApplePositions.push(generateApple(currentSnakePositions, currentApplePositions));		
+				}
+			});
+
+			//Check for walls
+			if (currentSnakePositions[0].x >= GAME_WIDTH || currentSnakePositions[0].x < 0 || 
+				currentSnakePositions[0].y >= GAME_WIDTH || currentSnakePositions[0].y < 0 ) {					
+				return {...state, isFinished: true}
+			}
+			
+			//Check if eating self
+			if (currentSnakePositions.slice(1).some(positionComparator(currentSnakePositions[0]))){
+				console.log('Snake ate his tale');
+				return {...state, isFinished: true}
+			}
+
+			
+			return {
+				...state,
+				snakePositions: currentSnakePositions, 
+				applePositions: currentApplePositions,
+				snakeEating: eating,
+				isFinished: false
+			}			
 		}
 		default: {
 			console.log('Reducer received unmapped intent');
@@ -143,11 +145,13 @@ const reducer = (state, intent) => {
 function Snake() {
 	//Setup reducer function to alter state via intents
 	//Intents have a type, in accordance with the format used in the React docs
-	const [state, dispatch] = useReducer(reducer, initialState);	
+	const [state, dispatch] = useReducer(reducer, initialState());	
 	
 	//The keypress handler will dispatch direction change events to the reducer function
 	const keypressHandler = (event) => {
-		if (Object.keys(INPUT_KEYS).indexOf(event.key) !== -1)
+		if (event.key === 'r')
+			dispatch({type:'gameStart'});
+		else if (Object.keys(INPUT_KEYS).indexOf(event.key) !== -1)
 			dispatch({type:'direction', data: INPUT_KEYS[event.key]});
 	}
 
@@ -168,11 +172,11 @@ function Snake() {
 		}, TICK_INTERVAL);
 		return () => clearInterval(intervalID);
 	}, []);
-
-
+	
 	return (
 		<div className="SiteContainer">
 			<Header />
+			<GameOverlay show={!state.isStarted}/>
 			<Game snakePositions={state.snakePositions} applePositions={state.applePositions} isFinished={state.isFinished}/>
 			<ScoreForm show={false}/>
 			<Scoreboard />
@@ -183,6 +187,13 @@ function Snake() {
 
 function Header() {
   	return <h1 className="Heading">React Snake</h1>; 
+}
+
+function GameOverlay({ show }) {	
+	return (show) ? <div className="GameOverlay">
+		Use w, a, s and d to control the snake. <br/>
+		Press r to start and reload at any time!
+	</div> : null
 }
 
 function Game({ snakePositions, applePositions, isFinished }) {
@@ -203,7 +214,7 @@ function Row({ snakePositions, applePositions, isFinished, rowNumber }) {
 
 function Cell({ snakePositions, applePositions, isFinished, coords }) {	
 	const cellRef = useRef(null);
-
+	
 	if (cellRef.current){
 		if (isFinished && positionComparator(coords)(snakePositions[0])){
 			cellRef.current.style.backgroundColor = COLOUR_MAP['Hit'];			
@@ -233,7 +244,7 @@ function Scoreboard(){
 	const [scores, setScores] = useState([]);
 	useEffect(() => {		
 		DB_INSTANCE.get('/scores')
-		.then((response) => {
+		.then((response) => {			
 			setScores(response.data);
 		})
 		.catch((error) => {
@@ -242,7 +253,7 @@ function Scoreboard(){
 	}, []);
 	return <ul className="Scoreboard">
 		{
-		(scores) ? scores.map((item, i) => <li key={i}>{item.name}:{item.score}</li>) : null
+		(scores) ? scores.map((item, i) => <li key={i}>{item.name}: {item.score}</li>) : null
 		}
 	</ul>;
 }
