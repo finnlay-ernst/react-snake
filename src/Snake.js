@@ -193,7 +193,7 @@ function Snake() {
 			window.removeEventListener('keydown', keypressHandler);
 			window.removeEventListener('keyup', keypressHandler);
 		}
-	}, []);
+	});
 
 	//Another useEffect hook for the setInterval call that defines the framerate and drives the whole game
 	useEffect(() => {
@@ -207,7 +207,7 @@ function Snake() {
 		<div className="SiteContainer">
 			<Header />			
 			<Game snakePositions={state.snakePositions} applePositions={state.applePositions} isFinished={state.isFinished} showOverlay={!state.isStarted}/>
-			<ScoreForm show={state.isFinished}/>
+			<ScoreForm show={state.isFinished} snakeLength={state.snakePositions.length}/>
 			<Scoreboard />
 			<Footer />
 		</div>
@@ -265,8 +265,24 @@ function Cell({ snakePositions, applePositions, isFinished, coords }) {
 	return <div ref={cellRef} className="Cell" style={{backgroundColor: getCellColour(snakePositions, applePositions, isFinished, coords)}}></div>;
 }
 
-function ScoreForm({ show }){
-	return (show) ? <form className="ScoreForm">
+function ScoreForm({ show, snakeLength, username }){
+	const formSubmitHandler = (event) => {
+		event.preventDefault();
+		console.log(event);
+		DB_INSTANCE.post('/scores', {
+			id: parseInt(Math.random()*100),
+			name: username,
+			score: snakeLength
+		})
+		.then((response) => {						
+			console.log(`Posted form data, got response: ${JSON.stringify(response)}`);
+		})
+		.catch((error) => {
+			console.error(error);
+		});
+	}
+
+	return (show) ? <form className="ScoreForm" onSubmit={formSubmitHandler}>
 		<input type="text" placeholder="Player Name" name="playerName" />
 		<input type="submit" />
 	</form> : null;
@@ -276,14 +292,15 @@ function Scoreboard(){
 	const [scores, setScores] = useState([]);
 	useEffect(() => {		
 		DB_INSTANCE.get('/scores')
-		.then((response) => {			
+		.then((response) => {						
+			response.data.sort((a, b) => b.score - a.score);
 			setScores(response.data);
 		})
 		.catch((error) => {
 			console.error(error);
 		});
 	}, []);
-	 
+	 	
 	return <ul className="Scoreboard">
 		{(scores.length > 0) ? scores.map((item, i) => <li key={i}>{item.name}: {item.score}</li>) : <li>No scores recorded yet!</li>}
 	</ul>
