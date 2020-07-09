@@ -97,7 +97,7 @@ const reducer = (state, intent) => {
 		}
 		case 'gameStart': {			
 			return {
-				...state, 
+				...(initialState()), 
 				isStarted: true
 			}
 		}
@@ -157,27 +157,42 @@ const reducer = (state, intent) => {
 	}
 }
 
-function Snake() {
+
+function Snake() {	
 	//Setup reducer function to alter state via intents
 	//Intents have a type, in accordance with the format used in the React docs
 	const [state, dispatch] = useReducer(reducer, initialState());	
 	
+	let latchedKeys = [];
+	
 	//The keypress handler will dispatch direction change events to the reducer function
 	const keypressHandler = (event) => {
-		if (event.key === 'r')
+		if (event.key === 'r') {			
 			dispatch({type:'gameStart'});
-		else if (Object.keys(INPUT_KEYS).indexOf(event.key) !== -1)
+		}
+		else if (Object.keys(INPUT_KEYS).indexOf(event.key) !== -1 && latchedKeys.indexOf(event.key) === -1){
+		 	latchedKeys.push(event.key);		
 			dispatch({type:'direction', data: INPUT_KEYS[event.key]});
+		}
+	}
+
+	const keyupHandler = (event) => {
+		//Unlatch the key
+		latchedKeys.splice(latchedKeys.indexOf(event.key), 1);
 	}
 
 	//On component mount we want to add a listener for a WASD inputs (dependency list is empty)
 	useEffect(() => {
 		//https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener
 		//Note that triggering events on keydown feels more responsive to me but leads to dispactch 
-		//calls being spammed hence causing lag if user holds down a direction
+		//calls being spammed hence causing lag if user holds down a direction, fixed using a 'latched keys' array
 		window.addEventListener('keydown', keypressHandler);
+		window.addEventListener('keyup', keyupHandler);
 		//Remember the useEffect hook returns a function to be run when the component unmounts
-		return () => window.removeEventListener('keydown', keypressHandler);
+		return () => {
+			window.removeEventListener('keydown', keypressHandler);
+			window.removeEventListener('keyup', keypressHandler);
+		}
 	}, []);
 
 	//Another useEffect hook for the setInterval call that defines the framerate and drives the whole game
