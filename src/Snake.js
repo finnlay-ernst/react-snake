@@ -175,9 +175,8 @@ function Snake() {
 	
 	return (
 		<div className="SiteContainer">
-			<Header />
-			<GameOverlay show={!state.isStarted}/>
-			<Game snakePositions={state.snakePositions} applePositions={state.applePositions} isFinished={state.isFinished}/>
+			<Header />			
+			<Game snakePositions={state.snakePositions} applePositions={state.applePositions} isFinished={state.isFinished} showOverlay={!state.isStarted}/>
 			<ScoreForm show={state.isFinished}/>
 			<Scoreboard />
 			<Footer />
@@ -196,11 +195,14 @@ function GameOverlay({ show }) {
 	</div> : null
 }
 
-function Game({ snakePositions, applePositions, isFinished }) {
+function Game({ snakePositions, applePositions, isFinished, showOverlay }) {
 	return <div className="GameContainer">
-		{
-		widthArray.map((item, i) => <Row snakePositions={snakePositions} applePositions={applePositions} isFinished={isFinished} rowNumber={i} key={i}/>)
-		}
+		<GameOverlay show={showOverlay}/>
+		<div className="Game">
+			{
+			widthArray.map((item, i) => <Row snakePositions={snakePositions} applePositions={applePositions} isFinished={isFinished} rowNumber={i} key={i}/>)
+			}
+		</div>
 	</div>; 
 }
 
@@ -248,14 +250,13 @@ function Scoreboard(){
 			setScores(response.data);
 		})
 		.catch((error) => {
-			console.log(error);
+			console.error(error);
 		});
 	}, []);
+	 
 	return <ul className="Scoreboard">
-		{
-		(scores) ? scores.map((item, i) => <li key={i}>{item.name}: {item.score}</li>) : null
-		}
-	</ul>;
+		{(scores.length > 0) ? scores.map((item, i) => <li key={i}>{item.name}: {item.score}</li>) : <li>No scores recorded yet!</li>}
+	</ul>
 }
 
 function Footer() {
