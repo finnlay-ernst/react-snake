@@ -59,6 +59,21 @@ const generateApple = (snakePositions, applePositions) => {
 	return position;
 }
 
+const getCellColour = (snakePositions, applePositions, isFinished, coords) => {
+	if (isFinished && positionComparator(coords)(snakePositions[0])){
+		return COLOUR_MAP['Hit'];			
+	}
+	else if (snakePositions.some(positionComparator(coords))) {					
+		return COLOUR_MAP['Snake'];
+	}
+	else if (applePositions.some(positionComparator(coords))){
+		return COLOUR_MAP['Apple'];
+	}
+	else {			
+		return COLOUR_MAP['Empty'];		
+	}
+}
+
 const initialState = () => ({
     snakePositions: [{x: Math.floor(GAME_WIDTH/2), y: Math.floor(GAME_WIDTH/2)}],
     snakeDirection: 'North',
@@ -82,7 +97,7 @@ const reducer = (state, intent) => {
 		}
 		case 'gameStart': {			
 			return {
-				...(initialState()), 
+				...state, 
 				isStarted: true
 			}
 		}
@@ -217,7 +232,7 @@ function Row({ snakePositions, applePositions, isFinished, rowNumber }) {
 function Cell({ snakePositions, applePositions, isFinished, coords }) {	
 	const cellRef = useRef(null);
 	
-	if (cellRef.current){
+	if (cellRef.current){		
 		if (isFinished && positionComparator(coords)(snakePositions[0])){
 			cellRef.current.style.backgroundColor = COLOUR_MAP['Hit'];			
 		}
@@ -232,7 +247,7 @@ function Cell({ snakePositions, applePositions, isFinished, coords }) {
 		}
 	} 
 
-	return <div ref={cellRef} className="Cell" style={{backgroundColor: COLOUR_MAP['Empty']}}></div>;
+	return <div ref={cellRef} className="Cell" style={{backgroundColor: getCellColour(snakePositions, applePositions, isFinished, coords)}}></div>;
 }
 
 function ScoreForm({ show }){
