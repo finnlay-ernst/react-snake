@@ -5,7 +5,8 @@ import './Snake.css';
 const DB_INSTANCE = axios.create({
 	baseURL: 'http://localhost:3001',
 	timeout: 1000,
-	headers: {		
+	headers: {
+		'Content-Type': 'application/json'
 	}
 });
 
@@ -265,17 +266,18 @@ function Cell({ snakePositions, applePositions, isFinished, coords }) {
 	return <div ref={cellRef} className="Cell" style={{backgroundColor: getCellColour(snakePositions, applePositions, isFinished, coords)}}></div>;
 }
 
-function ScoreForm({ show, snakeLength, username }){
+function ScoreForm({ show, snakeLength }){
+	const [username, setUsername] = useState('');
+
 	const formSubmitHandler = (event) => {
 		event.preventDefault();
-		console.log(event);
-		DB_INSTANCE.post('/scores', {
+		DB_INSTANCE.post(`/scores/`, {
 			id: parseInt(Math.random()*100),
 			name: username,
 			score: snakeLength
 		})
 		.then((response) => {						
-			console.log(`Posted form data, got response: ${JSON.stringify(response)}`);
+			console.log(`Posted form data, got response: ${JSON.stringify(response.data)}`);
 		})
 		.catch((error) => {
 			console.error(error);
@@ -283,7 +285,7 @@ function ScoreForm({ show, snakeLength, username }){
 	}
 
 	return (show) ? <form className="ScoreForm" onSubmit={formSubmitHandler}>
-		<input type="text" placeholder="Player Name" name="playerName" />
+		<input type="text" placeholder="Player Name" name="playerName" value={username} onChange={(event) => setUsername(event.target.value)} />
 		<input type="submit" />
 	</form> : null;
 }
