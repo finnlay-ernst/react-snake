@@ -163,6 +163,8 @@ function Snake() {
 	//Setup reducer function to alter state via intents
 	//Intents have a type, in accordance with the format used in the React docs
 	const [state, dispatch] = useReducer(reducer, initialState());	
+
+	const [reload, setReload] = useState(false);
 	
 	let latchedKeys = [];
 	
@@ -208,8 +210,8 @@ function Snake() {
 		<div className="SiteContainer">
 			<Header />			
 			<Game snakePositions={state.snakePositions} applePositions={state.applePositions} isFinished={state.isFinished} showOverlay={!state.isStarted}/>
-			<ScoreForm show={state.isFinished} snakeLength={state.snakePositions.length}/>
-			<Scoreboard />
+			<ScoreForm show={state.isFinished} snakeLength={state.snakePositions.length} isSubmitted={setReload}/>
+			<Scoreboard reload={reload} />
 			<Footer />
 		</div>
 	);
@@ -266,8 +268,9 @@ function Cell({ snakePositions, applePositions, isFinished, coords }) {
 	return <div ref={cellRef} className="Cell" style={{backgroundColor: getCellColour(snakePositions, applePositions, isFinished, coords)}}></div>;
 }
 
-function ScoreForm({ show, snakeLength }){
+function ScoreForm({ show, snakeLength, isSubmitted }){
 	const [username, setUsername] = useState('');
+	const [disabled, setDisabled] = useState(false);
 
 	const formSubmitHandler = (event) => {
 		event.preventDefault();
@@ -278,6 +281,8 @@ function ScoreForm({ show, snakeLength }){
 		})
 		.then((response) => {						
 			console.log(`Posted form data, got response: ${JSON.stringify(response.data)}`);
+			setDisabled(true);
+			isSubmitted(true);
 		})
 		.catch((error) => {
 			console.error(error);
@@ -285,12 +290,12 @@ function ScoreForm({ show, snakeLength }){
 	}
 
 	return (show) ? <form className="ScoreForm" onSubmit={formSubmitHandler}>
-		<input type="text" placeholder="Player Name" name="playerName" value={username} onChange={(event) => setUsername(event.target.value)} />
-		<input type="submit" />
+		<input type="text" disabled={disabled} placeholder="Player Name" name="playerName" value={username} onChange={(event) => setUsername(event.target.value)} />
+		<input type="submit" disabled={disabled}/>
 	</form> : null;
 }
 
-function Scoreboard(){
+function Scoreboard({ reload }){
 	const [scores, setScores] = useState([]);
 	useEffect(() => {		
 		DB_INSTANCE.get('/scores')
@@ -301,7 +306,7 @@ function Scoreboard(){
 		.catch((error) => {
 			console.error(error);
 		});
-	}, []);
+	}, [reload]);
 	 	
 	return <ul className="Scoreboard">
 		{(scores.length > 0) ? scores.map((item, i) => <li key={i}>{item.name}: {item.score}</li>) : <li>No scores recorded yet!</li>}
