@@ -100,6 +100,9 @@ input[type=submit] {
 .Scoreboard > li {
   border-bottom: 1px dashed black;
 }
+.Scoreboard > li:hover {
+  background-color: rgb(175, 213, 231);
+}
 
 .Footer {
   background-color: #383d49;

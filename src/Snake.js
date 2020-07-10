@@ -248,24 +248,7 @@ function Row({ snakePositions, applePositions, isFinished, rowNumber }) {
 }
 
 function Cell({ snakePositions, applePositions, isFinished, coords }) {	
-	const cellRef = useRef(null);
-	
-	if (cellRef.current){		
-		if (isFinished && positionComparator(coords)(snakePositions[0])){
-			cellRef.current.style.backgroundColor = COLOUR_MAP['Hit'];			
-		}
-		else if (snakePositions.some(positionComparator(coords))) {					
-			cellRef.current.style.backgroundColor = COLOUR_MAP['Snake'];
-		}
-		else if (applePositions.some(positionComparator(coords))){
-			cellRef.current.style.backgroundColor = COLOUR_MAP['Apple'];
-		}
-		else {			
-			cellRef.current.style.backgroundColor = COLOUR_MAP['Empty'];		
-		}
-	} 
-
-	return <div ref={cellRef} className="Cell" style={{backgroundColor: getCellColour(snakePositions, applePositions, isFinished, coords)}}></div>;
+	return <div className="Cell" style={{backgroundColor: getCellColour(snakePositions, applePositions, isFinished, coords)}}></div>;
 }
 
 function ScoreForm({ show, snakeLength, isSubmitted }){
@@ -274,18 +257,21 @@ function ScoreForm({ show, snakeLength, isSubmitted }){
 
 	const formSubmitHandler = (event) => {
 		event.preventDefault();
-		DB_INSTANCE.post(`/scores/`, {			
-			name: username,
-			score: snakeLength
-		})
-		.then((response) => {						
-			console.log(`Posted form data, got response: ${JSON.stringify(response.data)}`);
-			setDisabled(true);
-			isSubmitted(true);
-		})
-		.catch((error) => {
-			console.error(error);
-		});
+		if (username.length > 0) {
+			DB_INSTANCE.post(`/scores/`, {			
+				name: username,
+				score: snakeLength
+			})
+			.then((response) => {						
+				console.log(`Posted form data, got response: ${JSON.stringify(response.data)}`);
+				setDisabled(true);
+				setUsername('');
+				isSubmitted(true);
+			})
+			.catch((error) => {
+				console.error(error);
+			});
+		}
 	}
 
 	return (show) ? <form className="ScoreForm" onSubmit={formSubmitHandler}>
