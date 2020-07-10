@@ -58,6 +58,9 @@
   margin-left: auto;
   margin-right: auto;
 }
+.ScoreForm > label{
+  font-size: 0.5rem;
+}
 input[type=text] {
   border: 2px solid #383d49;
 }
@@ -71,19 +74,37 @@ input[type=submit] {
 
 .Scoreboard {
   background-color: azure;
-  padding: 10px;
+  padding: 10px;  
   color: #282c34;
   list-style-type: none;
   border: 10px solid black;
   border-radius: 10px;
   width: 500px;
+  height: 250px;
   margin-left: auto;
   margin-right: auto;
+  margin-bottom: 2rem;
+  overflow-y: scroll;
+}
+
+.Scoreboard::-webkit-scrollbar {
+  width: 10px;
+}
+.Scoreboard::-webkit-scrollbar-track {
+  background-color: #5f73a3;
+}
+.Scoreboard::-webkit-scrollbar-thumb {
+  background-color: #282c34;
+}
+
+.Scoreboard > li {
+  border-bottom: 1px dashed black;
 }
 
 .Footer {
   background-color: #383d49;
   width: 100%;
+  height: 0.8rem;
   padding: 10px;
   font-size: 0.5rem;
   display: flex;

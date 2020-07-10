@@ -274,8 +274,7 @@ function ScoreForm({ show, snakeLength, isSubmitted }){
 
 	const formSubmitHandler = (event) => {
 		event.preventDefault();
-		DB_INSTANCE.post(`/scores/`, {
-			id: parseInt(Math.random()*100),
+		DB_INSTANCE.post(`/scores/`, {			
 			name: username,
 			score: snakeLength
 		})
@@ -290,6 +289,8 @@ function ScoreForm({ show, snakeLength, isSubmitted }){
 	}
 
 	return (show) ? <form className="ScoreForm" onSubmit={formSubmitHandler}>
+		<label>Game over, record your score of {snakeLength}?</label>
+		<br />
 		<input type="text" disabled={disabled} placeholder="Player Name" name="playerName" value={username} onChange={(event) => setUsername(event.target.value)} />
 		<input type="submit" disabled={disabled}/>
 	</form> : null;
